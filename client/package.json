@@ -1,0 +1,22 @@
+{
+  "name": "madbox-test-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "./node_modules/.bin/webpack-dev-server --watch --open",
+    "build": "./node_modules/.bin/webpack -p",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "copy-webpack-plugin": "5.0.3",
+    "webpack": "4.32.0",
+    "webpack-cli": "3.3.2",
+    "webpack-dev-server": "3.4.1"
+  },
+  "dependencies": {
+    "three": "0.104.0"
+  }
+}
