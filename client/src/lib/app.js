@@ -1,6 +1,7 @@
 const THREE = require('three');
 const createUI = require('./createUI');
 const Keyboard = require('./keyboard');
+const Api = require('./api');
 
 function App(rootElement, width, height) {
   const ui = createUI(rootElement);
@@ -87,6 +88,7 @@ function App(rootElement, width, height) {
       r: item.rotation.z,
     }));
     console.log(state);
+    Api.post('ld', { items: state });
   }
 
   function setSelectedItem(item) {
