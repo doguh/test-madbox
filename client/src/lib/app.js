@@ -27,9 +27,11 @@ function App(rootElement, width, height) {
   let selectedItem = null;
   let items = [];
 
-  ui.addButton.onclick = addItem;
-  ui.clearButton.onclick = clearItems;
-  ui.saveButton.onclick = saveItems;
+  loadState();
+
+  ui.addButton.onclick = () => addItem();
+  ui.clearButton.onclick = () => clearItems();
+  ui.saveButton.onclick = () => saveState();
 
   renderer.domElement.addEventListener('click', e => {
     const raycaster = new THREE.Raycaster();
@@ -49,12 +51,14 @@ function App(rootElement, width, height) {
     }
   });
 
-  function addItem() {
+  function addItem(item) {
     const rect = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.4, 0.02),
+      new THREE.PlaneGeometry(item ? item.w : 0.4, item ? item.h : 0.02),
       new THREE.MeshBasicMaterial()
     );
-    rect.position.y = -0.1;
+    rect.position.x = item ? item.x : 0;
+    rect.position.y = item ? item.y : -0.1;
+    rect.rotation.z = item ? item.r : 0;
     items.push(rect);
     scene.add(rect);
     setSelectedItem(rect);
@@ -79,16 +83,26 @@ function App(rootElement, width, height) {
     setSelectedItem(null);
   }
 
-  function saveItems() {
-    const state = items.map(item => ({
-      x: item.position.x,
-      y: item.position.y,
-      w: item.geometry.parameters.width,
-      h: item.geometry.parameters.height,
-      r: item.rotation.z,
-    }));
-    console.log(state);
-    Api.post('ld', { items: state });
+  function saveState() {
+    const state = {
+      items: items.map(item => ({
+        x: item.position.x,
+        y: item.position.y,
+        w: item.geometry.parameters.width,
+        h: item.geometry.parameters.height,
+        r: item.rotation.z,
+      })),
+    };
+    console.log('saving state:', state);
+    Api.post('ld', state);
+  }
+
+  async function loadState() {
+    const state = await Api.get('ld');
+    console.log('loaded state:', state);
+    items = [];
+    state && state.items.forEach(item => addItem(item));
+    setSelectedItem(null);
   }
 
   function setSelectedItem(item) {
