@@ -3,7 +3,6 @@ const createUI = require('./createUI');
 const Keyboard = require('./keyboard');
 const Api = require('./api');
 const Space = require('./physics/space');
-const Body = require('./physics/body');
 const { Ball, Poutre } = require('./game/gameobject');
 
 function App(rootElement, width, height) {
