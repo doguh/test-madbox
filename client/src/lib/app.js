@@ -4,10 +4,13 @@ const Keyboard = require('./keyboard');
 const Api = require('./api');
 const Space = require('./physics/space');
 const Body = require('./physics/body');
+const { Ball, Poutre } = require('./game/gameobject');
 
 function App(rootElement, width, height) {
   const ui = createUI(rootElement);
   Keyboard.listen();
+
+  let started = false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(width, height);
@@ -20,17 +23,10 @@ function App(rootElement, width, height) {
   camera.position.z = 1;
   scene.add(camera);
 
-  const ball = new THREE.Mesh(
-    new THREE.CircleGeometry(0.05, 32),
-    new THREE.MeshBasicMaterial()
-  );
-  scene.add(ball);
-
   const space = new Space();
-  const body = new Body(Body.DYNAMIC);
-  body.mass = 10;
-  body.radius = 0.05;
-  space.add(body);
+  const ball = new Ball();
+  scene.add(ball.sprite);
+  space.add(ball.body);
 
   let selectedItem = null;
   let items = [];
@@ -47,9 +43,9 @@ function App(rootElement, width, height) {
     mouse.x = 2 * (e.clientX / width) - 1;
     mouse.y = 1 - 2 * (e.clientY / height);
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(items);
+    const intersects = raycaster.intersectObjects(items.map(i => i.sprite));
     if (intersects && intersects.length) {
-      setSelectedItem(intersects[intersects.length - 1].object);
+      setSelectedItem(intersects[intersects.length - 1].object.userData.item);
     }
   });
 
@@ -59,16 +55,17 @@ function App(rootElement, width, height) {
     }
   });
 
+  Keyboard.on('start', isDown => {
+    if (isDown) {
+      started = !started;
+    }
+  });
+
   function addItem(item) {
-    const rect = new THREE.Mesh(
-      new THREE.PlaneGeometry(item ? item.w : 0.4, item ? item.h : 0.02),
-      new THREE.MeshBasicMaterial()
-    );
-    rect.position.x = item ? item.x : 0;
-    rect.position.y = item ? item.y : -0.1;
-    rect.rotation.z = item ? item.r : 0;
+    const rect = new Poutre(item);
     items.push(rect);
-    scene.add(rect);
+    scene.add(rect.sprite);
+    space.add(rect.body);
     setSelectedItem(rect);
   }
 
@@ -79,13 +76,15 @@ function App(rootElement, width, height) {
         setSelectedItem(null);
       }
       items.splice(index, 1);
-      scene.remove(item);
+      scene.remove(item.sprite);
+      space.remove(item.body);
     }
   }
 
   function clearItems() {
     items.forEach(item => {
-      scene.remove(item);
+      scene.remove(item.sprite);
+      space.remove(item.body);
     });
     items = [];
     setSelectedItem(null);
@@ -94,11 +93,11 @@ function App(rootElement, width, height) {
   function saveState() {
     const state = {
       items: items.map(item => ({
-        x: item.position.x,
-        y: item.position.y,
-        w: item.geometry.parameters.width,
-        h: item.geometry.parameters.height,
-        r: item.rotation.z,
+        x: item.body.position.x,
+        y: item.body.position.y,
+        w: item.body.shape.width,
+        h: item.body.shape.height,
+        r: item.body.rotation,
       })),
     };
     console.log('saving state:', state);
@@ -115,10 +114,10 @@ function App(rootElement, width, height) {
 
   function setSelectedItem(item) {
     if (selectedItem) {
-      selectedItem.material.color.setHex(0xffffff);
+      selectedItem.sprite.material.color.setHex(0xffffff);
     }
     if (item) {
-      item.material.color.setHex(0x00ff00);
+      item.sprite.material.color.setHex(0x00ff00);
     }
     selectedItem = item;
   }
@@ -131,28 +130,32 @@ function App(rootElement, width, height) {
     const elapsed = (now - lastFrameTime) / 1000;
     lastFrameTime = now;
 
-    space.step(elapsed);
-
-    ball.position.x = body.position.x;
-    ball.position.y = body.position.y;
-
-    if (selectedItem) {
+    if (!started && selectedItem) {
       if (Keyboard.up) {
-        selectedItem.position.y += 0.5 * elapsed;
+        selectedItem.body.position.y += 0.5 * elapsed;
       }
       if (Keyboard.down) {
-        selectedItem.position.y -= 0.5 * elapsed;
+        selectedItem.body.position.y -= 0.5 * elapsed;
       }
       if (Keyboard.left) {
-        selectedItem.position.x -= 0.5 * elapsed;
+        selectedItem.body.position.x -= 0.5 * elapsed;
       }
       if (Keyboard.right) {
-        selectedItem.position.x += 0.5 * elapsed;
+        selectedItem.body.position.x += 0.5 * elapsed;
       }
       if (Keyboard.rotate) {
-        selectedItem.rotation.z += 1 * elapsed;
+        selectedItem.body.rotation += 1 * elapsed;
       }
     }
+
+    if (started) {
+      space.step(elapsed);
+    }
+
+    ball.update();
+    items.forEach(item => {
+      item.update();
+    });
 
     renderer.render(scene, camera);
   }

@@ -1,14 +1,9 @@
 const THREE = require('three');
 const Body = require('./body');
 
-const truc = new Body(Body.DYNAMIC);
-truc.position.y = -0.1;
-truc.width = 0.4;
-truc.height = 0.02;
-
 class Space {
   bodies = [];
-  gravity = new THREE.Vector2(1, -9.81);
+  gravity = new THREE.Vector2(0, -9.81);
 
   add = body => {
     this.bodies.push(body);
@@ -38,15 +33,14 @@ class Space {
         body.acceleration.y = (force.y / body.mass) * elapsed;
         body.velocity.x += body.acceleration.x;
         body.velocity.y += body.acceleration.y;
+
+        this.bodies.forEach(body2 => {
+          if (body !== body2) body.testCollision(body2);
+        });
       }
 
       body.position.x += body.velocity.x * elapsed;
       body.position.y += body.velocity.y * elapsed;
-
-      // wtf
-      if (body.collide(truc)) {
-        console.log('collide!');
-      }
     });
   };
 }

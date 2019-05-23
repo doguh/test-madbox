@@ -6,6 +6,7 @@ const MAP_KEYS = {
   r: 'rotate',
   R: 'rotate',
   Backspace: 'delete',
+  ' ': 'start',
 };
 
 const Keyboard = {
@@ -15,6 +16,7 @@ const Keyboard = {
   right: false,
   rotate: false,
   delete: false,
+  start: false,
 
   listen: function() {
     document.addEventListener('keydown', e => {
