@@ -36,6 +36,9 @@ function App(rootElement, width, height) {
   ui.clearButton.onclick = () => clearItems();
   ui.saveButton.onclick = () => saveState();
 
+  /**
+   * on click on an item, select it
+   */
   renderer.domElement.addEventListener('click', e => {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -48,26 +51,40 @@ function App(rootElement, width, height) {
     }
   });
 
+  /**
+   * on press delete, remove selected item
+   */
   Keyboard.on('delete', isDown => {
     if (isDown && selectedItem) {
       removeItem(selectedItem);
     }
   });
 
+  /**
+   * on press space, start the game
+   */
   Keyboard.on('start', isDown => {
     if (isDown) {
       started = !started;
     }
   });
 
-  function addItem(item) {
-    const rect = new Poutre(item);
+  /**
+   * creates and adds an item
+   * @param {*} itemInfo { x, y, w, h, r }
+   */
+  function addItem(itemInfo) {
+    const rect = new Poutre(itemInfo);
     items.push(rect);
     scene.add(rect.sprite);
     space.add(rect.body);
     setSelectedItem(rect);
   }
 
+  /**
+   * removes the given GameObject
+   * @param {*} item
+   */
   function removeItem(item) {
     const index = items.indexOf(item);
     if (~index) {
@@ -80,6 +97,9 @@ function App(rootElement, width, height) {
     }
   }
 
+  /**
+   * removes all items
+   */
   function clearItems() {
     items.forEach(item => {
       scene.remove(item.sprite);
@@ -89,6 +109,9 @@ function App(rootElement, width, height) {
     setSelectedItem(null);
   }
 
+  /**
+   * saves level design to the server
+   */
   function saveState() {
     const state = {
       items: items.map(item => ({
@@ -103,6 +126,9 @@ function App(rootElement, width, height) {
     Api.post('ld', state);
   }
 
+  /**
+   * load saved state from the server
+   */
   async function loadState() {
     const state = await Api.get('ld');
     console.log('loaded state:', state);
@@ -111,6 +137,10 @@ function App(rootElement, width, height) {
     setSelectedItem(null);
   }
 
+  /**
+   * set the selected item
+   * @param {*} item
+   */
   function setSelectedItem(item) {
     if (selectedItem) {
       selectedItem.sprite.material.color.setHex(0xffffff);
@@ -123,6 +153,9 @@ function App(rootElement, width, height) {
 
   let lastFrameTime = Date.now();
 
+  /**
+   * main loop
+   */
   function render() {
     requestAnimationFrame(render);
     const now = Date.now();
