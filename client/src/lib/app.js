@@ -66,6 +66,13 @@ function App(rootElement, width, height) {
   Keyboard.on('start', isDown => {
     if (isDown) {
       started = !started;
+      if (!started) {
+        // reset ball state
+        ball.body.position.x = 0;
+        ball.body.position.y = 0;
+        ball.body.velocity.x = 0;
+        ball.body.velocity.y = 0;
+      }
     }
   });
 

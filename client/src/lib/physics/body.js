@@ -1,5 +1,5 @@
 const THREE = require('three');
-const findDistance = require('./pythagore');
+const { circleIntersectsRectangle } = require('./helpers');
 
 class Body {
   static DYNAMIC = 'dynamic';
@@ -25,58 +25,25 @@ class Body {
     const circle = this;
     const rect = body2;
 
-    const unrotatedCircleX = circle.position.x;
-    const unrotatedCircleY = circle.position.y;
-
-    const aabb = {
-      x: rect.position.x - rect.shape.width / 2,
-      y: rect.position.y - rect.shape.height / 2,
-      width: rect.shape.width,
-      height: rect.shape.height,
-    };
-
-    // Closest point in the rectangle to the center of circle rotated backwards(unrotated)
-    let closestX, closestY;
-
-    // Find the unrotated closest x point from center of unrotated circle
-    if (unrotatedCircleX < aabb.x) closestX = aabb.x;
-    else if (unrotatedCircleX > aabb.x + aabb.width)
-      closestX = aabb.x + aabb.width;
-    else closestX = unrotatedCircleX;
-
-    // Find the unrotated closest y point from center of unrotated circle
-    if (unrotatedCircleY < aabb.y) closestY = aabb.y;
-    else if (unrotatedCircleY > aabb.y + aabb.height)
-      closestY = aabb.y + aabb.height;
-    else closestY = unrotatedCircleY;
-
-    // Determine collision
-    let collision = false;
-
-    let distance = findDistance(
-      unrotatedCircleX,
-      unrotatedCircleY,
-      closestX,
-      closestY
+    const collide = circleIntersectsRectangle(
+      circle.position.x,
+      circle.position.y,
+      circle.shape.radius,
+      rect.position.x - rect.shape.width / 2,
+      rect.position.y - rect.shape.height / 2,
+      rect.shape.width,
+      rect.shape.height,
+      rect.rotation,
+      rect.position.x,
+      rect.position.y
     );
-    if (distance < circle.shape.radius) collision = true;
-    // Collision
-    else collision = false;
-
-    if (collision) {
-      const distVec = new THREE.Vector2(this.velocity.x, this.velocity.y);
-      distVec.setLength(circle.shape.radius - distance);
-
-      this.position.y = unrotatedCircleY - distVec.y;
-      this.position.x = unrotatedCircleX - distVec.x;
-
-      // this.velocity.x =
-      //   -this.acceleration.x - (this.velocity.x - this.acceleration.x) / 2;
-      this.velocity.y =
-        -this.acceleration.y - (this.velocity.y - this.acceleration.y) / 2;
+    if (collide) {
+      console.log('collide!!!');
+      // dummy
+      this.velocity.x = -this.velocity.x / 2;
+      this.velocity.y = -this.velocity.y / 2;
     }
-
-    return collision;
+    return collide;
   };
 }
 
