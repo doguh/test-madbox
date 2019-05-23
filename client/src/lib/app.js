@@ -2,6 +2,8 @@ const THREE = require('three');
 const createUI = require('./createUI');
 const Keyboard = require('./keyboard');
 const Api = require('./api');
+const Space = require('./physics/space');
+const Body = require('./physics/body');
 
 function App(rootElement, width, height) {
   const ui = createUI(rootElement);
@@ -23,6 +25,12 @@ function App(rootElement, width, height) {
     new THREE.MeshBasicMaterial()
   );
   scene.add(ball);
+
+  const space = new Space();
+  const body = new Body(Body.DYNAMIC);
+  body.mass = 10;
+  body.radius = 0.05;
+  space.add(body);
 
   let selectedItem = null;
   let items = [];
@@ -122,6 +130,11 @@ function App(rootElement, width, height) {
     const now = Date.now();
     const elapsed = (now - lastFrameTime) / 1000;
     lastFrameTime = now;
+
+    space.step(elapsed);
+
+    ball.position.x = body.position.x;
+    ball.position.y = body.position.y;
 
     if (selectedItem) {
       if (Keyboard.up) {

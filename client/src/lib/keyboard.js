@@ -21,7 +21,7 @@ const Keyboard = {
       if (MAP_KEYS[e.key]) {
         this[MAP_KEYS[e.key]] = true;
       }
-      if (e.key !== 'F12') {
+      if (e.key !== 'F12' && e.key !== 'F5') {
         e.preventDefault();
       }
       if (this._listeners[e.key]) {
