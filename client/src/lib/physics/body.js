@@ -1,5 +1,5 @@
 const THREE = require('three');
-const { circleIntersectsRectangle } = require('./helpers');
+const { clamp } = require('./helpers');
 
 class Body {
   static DYNAMIC = 'dynamic';
@@ -25,25 +25,63 @@ class Body {
     const circle = this;
     const rect = body2;
 
-    const collide = circleIntersectsRectangle(
+    const rotatedCircle = new THREE.Vector2(
       circle.position.x,
-      circle.position.y,
-      circle.shape.radius,
-      rect.position.x - rect.shape.width / 2,
-      rect.position.y - rect.shape.height / 2,
-      rect.shape.width,
-      rect.shape.height,
-      rect.rotation,
-      rect.position.x,
-      rect.position.y
-    );
+      circle.position.y
+    ).rotateAround(rect.position, -rect.rotation);
+
+    const aabb = {
+      minX: rect.position.x - rect.shape.width / 2,
+      minY: rect.position.y - rect.shape.height / 2,
+      maxX: rect.position.x + rect.shape.width / 2,
+      maxY: rect.position.y + rect.shape.height / 2,
+    };
+
+    const nearestX = clamp(aabb.minX, rotatedCircle.x, aabb.maxX);
+    const nearestY = clamp(aabb.minY, rotatedCircle.y, aabb.maxY);
+
+    const deltaX = rotatedCircle.x - nearestX;
+    const deltaY = rotatedCircle.y - nearestY;
+    const collide =
+      deltaX * deltaX + deltaY * deltaY <
+      circle.shape.radius * circle.shape.radius;
+
     if (collide) {
-      console.log('collide!!!');
-      // dummy
-      this.velocity.x = -this.velocity.x / 2;
-      this.velocity.y = -this.velocity.y / 2;
+      console.log('collide!!');
+      const dist = new THREE.Vector2(
+        rotatedCircle.x - nearestX,
+        rotatedCircle.y - nearestY
+      );
+
+      const rotatedVelocity = new THREE.Vector2(
+        circle.velocity.x,
+        circle.velocity.y
+      ).rotateAround(new THREE.Vector2(0, 0), -rect.rotation);
+
+      // if circle goes towards the rectangle
+      if (rotatedVelocity.dot(dist) < 0) {
+        var dnormal = new THREE.Vector2(-dist.y, dist.x);
+        var normal_angle = Math.atan2(dnormal.y, dnormal.x);
+        var incoming_angle = Math.atan2(rotatedVelocity.y, rotatedVelocity.x);
+        var theta = normal_angle - incoming_angle;
+        rotatedVelocity.rotateAround(new THREE.Vector2(0, 0), 2 * theta);
+
+        // apply new velocity
+        circle.velocity = rotatedVelocity
+          .rotateAround(rect.position, rect.rotation)
+          .multiplyScalar(0.75);
+      }
+
+      // resolve circle position
+      // const penetrationDepth =
+      //   -circle.shape.radius + Math.sqrt(dist.x * dist.x + dist.y * dist.y);
+      // const penetrationVector = dist
+      //   .normalize()
+      //   .multiplyScalar(penetrationDepth);
+      // rotatedCircle.sub(penetrationVector);
+      // rotatedCircle.rotateAround(rect.position, rect.rotation);
+      // circle.position = rotatedCircle;
     }
-    return collide;
   };
 }
 
