@@ -24,7 +24,14 @@ class Space {
   };
 
   step = elapsed => {
-    // elapsed = 0.0003;
+    const times = 10;
+    const subelapsed = elapsed / times;
+    for (let i = 0; i < times; i++) {
+      this.substep(subelapsed);
+    }
+  };
+
+  substep = elapsed => {
     this.bodies.forEach(body => {
       const force = this.computeForce(body);
 
