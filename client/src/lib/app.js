@@ -149,6 +149,7 @@ function App(rootElement, width, height) {
    * @param {*} item
    */
   function setSelectedItem(item) {
+    console.log('setSelectedItem', item);
     if (selectedItem) {
       selectedItem.sprite.material.color.setHex(0xffffff);
     }

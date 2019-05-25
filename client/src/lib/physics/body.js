@@ -53,10 +53,11 @@ class Body {
         rotatedCircle.y - nearestY
       );
 
+      const center = new THREE.Vector2(0, 0);
       const rotatedVelocity = new THREE.Vector2(
         circle.velocity.x,
         circle.velocity.y
-      ).rotateAround(new THREE.Vector2(0, 0), -rect.rotation);
+      ).rotateAround(center, -rect.rotation);
 
       // if circle goes towards the rectangle
       if (rotatedVelocity.dot(dist) < 0) {
@@ -64,11 +65,11 @@ class Body {
         var normal_angle = Math.atan2(dnormal.y, dnormal.x);
         var incoming_angle = Math.atan2(rotatedVelocity.y, rotatedVelocity.x);
         var theta = normal_angle - incoming_angle;
-        rotatedVelocity.rotateAround(new THREE.Vector2(0, 0), 2 * theta);
+        rotatedVelocity.rotateAround(center, 2 * theta);
 
         // apply new velocity
         circle.velocity = rotatedVelocity
-          .rotateAround(rect.position, rect.rotation)
+          .rotateAround(center, rect.rotation)
           .multiplyScalar(0.75);
       }
 

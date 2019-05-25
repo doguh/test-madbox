@@ -13,6 +13,8 @@ class Space {
     const index = this.bodies.indexOf(body);
     if (~index) {
       this.bodies.splice(index, 1);
+    } else {
+      console.error('space: body not found for remove');
     }
   };
 
