@@ -61,6 +61,14 @@ function App(rootElement, width, height) {
   });
 
   /**
+   * on mouse leave, set it to 0,0 so the camera stops
+   */
+  renderer.domElement.addEventListener('mouseleave', e => {
+    mouse.x = 0;
+    mouse.y = 0;
+  });
+
+  /**
    * on press delete, remove selected item
    */
   Keyboard.on('delete', isDown => {

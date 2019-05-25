@@ -1,7 +1,7 @@
 function createUI(rootElement) {
   const container = document.createElement('div');
   container.style.position = 'absolute';
-  container.style.margin = '20px';
+  container.style.padding = '20px';
 
   const addButton = createButton('+ Add', container);
   const clearButton = createButton('Clear all', container);
