@@ -22,6 +22,8 @@ function App(rootElement, width, height) {
   camera.position.z = 1;
   scene.add(camera);
 
+  const mouse = new THREE.Vector2(0, 0);
+
   const space = new Space();
   const ball = new Ball();
   scene.add(ball.sprite);
@@ -41,7 +43,6 @@ function App(rootElement, width, height) {
    */
   renderer.domElement.addEventListener('click', e => {
     const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
     mouse.x = 2 * (e.clientX / width) - 1;
     mouse.y = 1 - 2 * (e.clientY / height);
     raycaster.setFromCamera(mouse, camera);
@@ -49,6 +50,14 @@ function App(rootElement, width, height) {
     if (intersects && intersects.length) {
       setSelectedItem(intersects[intersects.length - 1].object.userData.item);
     }
+  });
+
+  /**
+   * on mouse move, register mouse position
+   */
+  renderer.domElement.addEventListener('mousemove', e => {
+    mouse.x = 2 * (e.clientX / width) - 1;
+    mouse.y = 1 - 2 * (e.clientY / height);
   });
 
   /**
@@ -72,6 +81,8 @@ function App(rootElement, width, height) {
         ball.body.position.y = 0;
         ball.body.velocity.x = 0;
         ball.body.velocity.y = 0;
+        // reset camera position
+        camera.position.set(0, 0, 1);
       }
     }
   });
@@ -170,26 +181,49 @@ function App(rootElement, width, height) {
     const elapsed = (now - lastFrameTime) / 1000;
     lastFrameTime = now;
 
-    if (!started && selectedItem) {
-      if (Keyboard.up) {
-        selectedItem.body.position.y += 0.5 * elapsed;
-      }
-      if (Keyboard.down) {
-        selectedItem.body.position.y -= 0.5 * elapsed;
-      }
-      if (Keyboard.left) {
-        selectedItem.body.position.x -= 0.5 * elapsed;
-      }
-      if (Keyboard.right) {
-        selectedItem.body.position.x += 0.5 * elapsed;
-      }
-      if (Keyboard.rotate) {
-        selectedItem.body.rotation += 1 * elapsed;
-      }
-    }
-
     if (started) {
+      /**
+       * si la simulation est lancée
+       */
       space.step(elapsed);
+
+      // camera follows ball
+      camera.position.x = ball.body.position.x;
+      camera.position.y = ball.body.position.y;
+    } else {
+      /**
+       * sinon on est en mode editor
+       */
+      // move camera if near borders
+      if (mouse.x < -0.9) {
+        camera.position.x -= elapsed;
+      } else if (mouse.x > 0.9) {
+        camera.position.x += elapsed;
+      }
+      if (mouse.y < -0.9) {
+        camera.position.y -= elapsed;
+      } else if (mouse.y > 0.9) {
+        camera.position.y += elapsed;
+      }
+
+      // move/rotate selected item if key is pressed
+      if (selectedItem) {
+        if (Keyboard.up) {
+          selectedItem.body.position.y += 0.5 * elapsed;
+        }
+        if (Keyboard.down) {
+          selectedItem.body.position.y -= 0.5 * elapsed;
+        }
+        if (Keyboard.left) {
+          selectedItem.body.position.x -= 0.5 * elapsed;
+        }
+        if (Keyboard.right) {
+          selectedItem.body.position.x += 0.5 * elapsed;
+        }
+        if (Keyboard.rotate) {
+          selectedItem.body.rotation += 1 * elapsed;
+        }
+      }
     }
 
     ball.update();
