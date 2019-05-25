@@ -6,19 +6,22 @@ const Space = require('./physics/space');
 const { Ball, Poutre } = require('./game/gameobject');
 
 function App(rootElement, width, height) {
+  let WIDTH = width;
+  let HEIGHT = height;
+
   const ui = createUI(rootElement);
   Keyboard.listen();
 
   let started = false;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(width, height);
+  renderer.setSize(WIDTH, HEIGHT);
   renderer.setClearColor(0, 1);
   rootElement.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
 
-  const camera = new THREE.PerspectiveCamera(70, width / height, 0.01, 10);
+  const camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 0.01, 10);
   camera.position.z = 1;
   scene.add(camera);
 
@@ -39,12 +42,24 @@ function App(rootElement, width, height) {
   ui.saveButton.onclick = () => saveState();
 
   /**
+   * on resize, update camera and renderer
+   */
+  window.addEventListener('resize', () => {
+    WIDTH = rootElement.offsetWidth;
+    heigh = rootElement.offsetHeight;
+    camera.aspect = WIDTH / HEIGHT;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(WIDTH, HEIGHT);
+  });
+
+  /**
    * on click on an item, select it
    */
   renderer.domElement.addEventListener('click', e => {
     const raycaster = new THREE.Raycaster();
-    mouse.x = 2 * (e.clientX / width) - 1;
-    mouse.y = 1 - 2 * (e.clientY / height);
+    mouse.x = 2 * (e.clientX / WIDTH) - 1;
+    mouse.y = 1 - 2 * (e.clientY / HEIGHT);
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(items.map(i => i.sprite));
     if (intersects && intersects.length) {
@@ -56,8 +71,8 @@ function App(rootElement, width, height) {
    * on mouse move, register mouse position
    */
   renderer.domElement.addEventListener('mousemove', e => {
-    mouse.x = 2 * (e.clientX / width) - 1;
-    mouse.y = 1 - 2 * (e.clientY / height);
+    mouse.x = 2 * (e.clientX / WIDTH) - 1;
+    mouse.y = 1 - 2 * (e.clientY / HEIGHT);
   });
 
   /**
