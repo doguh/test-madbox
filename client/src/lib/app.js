@@ -46,10 +46,9 @@ function App(rootElement, width, height) {
    */
   window.addEventListener('resize', () => {
     WIDTH = rootElement.offsetWidth;
-    heigh = rootElement.offsetHeight;
+    HEIGHT = rootElement.offsetHeight;
     camera.aspect = WIDTH / HEIGHT;
     camera.updateProjectionMatrix();
-
     renderer.setSize(WIDTH, HEIGHT);
   });
 
